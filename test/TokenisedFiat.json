@@ -1,0 +1,6 @@
+[
+  'function faucet(address to, uint amount) external',
+  'function burn(address to, uint amount) external',
+  'function name() public view returns (string memory)',
+  'function symbol() public view returns (string memory)'
+]
