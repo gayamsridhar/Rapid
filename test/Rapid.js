@@ -4,7 +4,7 @@ const { ethers } = require("hardhat");
 
 const utils = ethers.utils;
 
-let adminUser, userOne, userTwo;
+let adminUser, Merchant, Traveller, inrBank, euroBank;
 let euro, euroToken;
 let inr,inrToken;
 let euroLP, euroLPToken;
@@ -18,7 +18,7 @@ const inrLP32 = utils.formatBytes32String("INRLP");
 
 describe("Rapid Protocol", function () {
   beforeEach(async function () {
-    [adminUser,  userOne, userTwo] = await ethers.getSigners();
+    [adminUser,  Merchant, Traveller, inrBank, euroBank] = await ethers.getSigners();
 
     rapid = await ethers.getContractFactory("RapidProtocol");
     rapidContract = await rapid.deploy("Rapid Governance Token","RGT");
@@ -52,60 +52,7 @@ describe("Rapid Protocol", function () {
     await rapidContract.addLPToken(euroLP32, euroLPToken.address);
     await rapidContract.addLPToken(inrLP32, inrLPToken.address);
 
-  });
-
-  it("Token Addresses", async function () {
-    console.log("--------------------------");
-    console.log("Owner of the the all contracts: ", adminUser.address);
-    console.log("Address of the the Euro Fiat Token contract: ", euroToken.address);
-    console.log("Address of the the Rupee Fiat Token contract: ", inrToken.address);
-    console.log("Address of the the Euro Liquidity Pool Token contract: ", euroLPToken.address);
-    console.log("Address of the the Rupee Liquidity Pool Token contract: ", inrLPToken.address);
-    console.log("");
-
-    const euroTokenName = await euroLPToken.name();
-    console.log("name of Euro Liquidity Pool Token contract: ", euroTokenName);
-
-    const euroTokenSymbol = await euroLPToken.symbol();
-    console.log("symbol of Euro Liquidity Pool Token contract: ", euroTokenSymbol);
-
-    console.log("");
-
-    const inrTokenName = await inrLPToken.name();
-    console.log("name of Rupee Liquidity Pool Token contract: ", inrTokenName);
-
-    const inrTokenSymbol = await inrLPToken.symbol();
-    console.log("symbol of Rupee Liquidity Pool Token contract: ", inrTokenSymbol);
-
-    console.log("--------------------------");
-
-    console.log("--------------------------");
-
-    const registeredTokens = await rapidContract.getFiatTokens();
-    // console.log("registered tokens with rapid protocol",  registeredTokens);
-
-   for (let i = 0 ; i <  registeredTokens.length; i++) {
-     console.log("registered fiat token address with rapid protocol # ", +i+1 + " : " +  registeredTokens[i].tokenAddress);
-     let x = registeredTokens[i].sybmol;
-     // console.log("b32 of euro",euroFiat32);
-     console.log("registered fiat token symbol rapid protocol # ", +i+1 + " : " +  x);
-    }
-    console.log("--------------------------");
-
-    console.log("--------------------------");
-
-    const registeredLPTokens = await rapidContract.getLPTokens();
-    // console.log("registered tokens with rapid protocol",  registeredTokens);
-
-   for (let i = 0 ; i <  registeredLPTokens.length; i++) {
-     console.log("registered LP token address with rapid protocol # ", +i+1 + " : " +  registeredLPTokens[i].tokenAddress);
-     console.log("registered LP token symbol rapid protocol # ", +i+1 + " : " +  parseInt(registeredLPTokens[i].sybmol));
-    }
-    console.log("--------------------------");
-
-
   }); 
-
 
   it("buy fiat tokens", async function () {
     console.log("--------------------------");
@@ -116,148 +63,188 @@ describe("Rapid Protocol", function () {
     const adminBalanceINRFiat = await inrToken.balanceOf(adminUser.address);
     console.log("balance of Admin User (INR Fiat Tokens)",  adminBalanceINRFiat.toNumber());
 
-    await euroToken.transfer(userOne.address,1000);
-    await inrToken.transfer(userTwo.address,10000);
+    // after trnafering the fiat currency from Bank to Rapid account, Fiat tokens tranfered to Banks
+    // these are the seeded liquidity from Banks
+
+    const inrLiquidity = 10000;
+    const euroLiquidity = 100;
+
+    await euroToken.transfer(euroBank.address,euroLiquidity);
+    await inrToken.transfer(inrBank.address,inrLiquidity);
     const adminBalanceEUROFiat1 = await euroToken.balanceOf(adminUser.address);
     console.log("balance of Admin User (Euro Fiat Tokens), after transfer",  adminBalanceEUROFiat1.toNumber());
 
     const adminBalanceEUROFiat2 = await inrToken.balanceOf(adminUser.address);
     console.log("balance of Admin User (INR Fiat Tokens), after transfer",  adminBalanceEUROFiat2.toNumber());
-    // const rapidContractEUROFiat = await euroToken.balanceOf(rapidContract.address);
-    // console.log("balance of Rapid Contract (Euro Fiat Tokens), after transfer",  rapidContractEUROFiat.toNumber());
+    
+    const balanceOne = await euroToken.balanceOf(euroBank.address);
+    console.log("balance of EURO-LP(Euro Fiat Tokens), after buy",  balanceOne.toNumber());
 
-    const balanceOne = await euroToken.balanceOf(userOne.address);
-    console.log("balance of user one(Euro Fiat Tokens), after buy",  balanceOne.toNumber());
-
-    const balanceTwo = await inrToken.balanceOf(userTwo.address);
-    console.log("balance of user two(Rupee Fiat Tokens), after buy",  balanceTwo.toNumber());
+    const balanceTwo = await inrToken.balanceOf(inrBank.address);
+    console.log("balance of INR-LP (Rupee Fiat Tokens), after buy",  balanceTwo.toNumber());
 
     console.log("--------------------------");
-  });
+  }); 
 
   it("Add Liquidity", async function () {
     console.log("--------------------------");
 
-    const adminBalanceEUROFiat = await euroToken.balanceOf(adminUser.address);
-    console.log("balance of Admin User (Euro Fiat Tokens)",  adminBalanceEUROFiat.toNumber());
+    // after trnafering the fiat currency from Bank to Rapid account, Fiat tokens tranfered to Banks
+    // these are the seeded liquidity from Banks
 
-    const adminBalanceINRFiat = await inrToken.balanceOf(adminUser.address);
-    console.log("balance of Admin User (INR Fiat Tokens)",  adminBalanceINRFiat.toNumber());
+    const inrLiquidity = 10000;
+    const euroLiquidity = 100;
 
-    await euroToken.transfer(userOne.address,1000);
-    await inrToken.transfer(userTwo.address,10000);
+    await euroToken.transfer(euroBank.address,euroLiquidity);
+    await inrToken.transfer(inrBank.address,inrLiquidity);
 
-    const adminBalanceEUROFiat1 = await euroToken.balanceOf(adminUser.address);
-    console.log("balance of Admin User (Euro Fiat Tokens), after transfer",  adminBalanceEUROFiat1.toNumber());
+    // Add LP tokens to Rapid contract
+       await euroLPToken.transfer(rapidContract.address, 1000);
+       await inrLPToken.transfer(rapidContract.address, 100000);
 
-    const adminBalanceINRFiat1 = await inrToken.balanceOf(adminUser.address);
-    console.log("balance of Admin User (INR Fiat Tokens), after transfer",  adminBalanceINRFiat1.toNumber());
-  
-    const balanceOne = await euroToken.balanceOf(userOne.address);
-    console.log("balance of user-one(Euro Fiat Tokens), after buy",  balanceOne.toNumber());
+    await inrToken.connect(inrBank).transfer(rapidContract.address, inrLiquidity);
+    await euroToken.connect(euroBank).transfer(rapidContract.address, euroLiquidity);
 
-    const balanceTwo = await inrToken.balanceOf(userTwo.address);
-    console.log("balance of user-two(Rupee Fiat Tokens), after buy",  balanceTwo.toNumber());
+      const balanceOne = await euroToken.balanceOf(rapidContract.address);
+      console.log("balance of rapidContract(Euro Fiat Tokens), after transfer ",  balanceOne.toNumber());
 
-    // Add EURO liquidity
-    await euroLPToken.transfer(rapidContract.address, 1000000);
-    await inrLPToken.transfer(rapidContract.address, 1000000);
+      const balanceTwo = await inrToken.balanceOf(rapidContract.address);
+      console.log("balance of rapidContract (Rupee Fiat Tokens), after transfer",  balanceTwo.toNumber());
 
-    await euroToken.connect(userOne).transfer(rapidContract.address, 1000);
-
-    const balanceOne1 = await euroToken.balanceOf(userOne.address);
-    console.log("balance of user-one(Euro Fiat Tokens), after lp token intiatiation",  balanceOne1.toNumber());
-
-    const rapidContractEUROFiat2 = await euroToken.balanceOf(rapidContract.address);
-    console.log("balance of Rapid Contract (Euro Fiat Tokens), after lp token intiatiation",  rapidContractEUROFiat2.toNumber());
-
-    await rapidContract.addLiquidity(1000,userOne.address,euroFiat32, euroLP32,1);
-    const balanceOneLP1 = await euroLPToken.balanceOf(userOne.address);
-    console.log("balance of user one(Euro LP Tokens), after lp intiatiation ",  balanceOneLP1.toNumber());
-
-    const rapidContractEUROLP1 = await euroLPToken.balanceOf(rapidContract.address);
-    console.log("balance of Rapid Contract (Euro LP Tokens), after lp intiatiation",  rapidContractEUROLP1.toNumber());
+    await rapidContract.addLiquidity(inrLiquidity,inrBank.address,inrFiat32, inrLP32,1);
+    await rapidContract.addLiquidity(euroLiquidity,euroBank.address,euroFiat32, euroLP32,1); 
     
+      const balance3 = await euroLPToken.balanceOf(euroBank.address);
+      console.log("balance of EURO-LP(Euro LP Tokens), after add-liquidity",  balance3.toNumber());
+
+      const balance4 = await inrLPToken.balanceOf(inrBank.address);
+      console.log("balance of INR-LP (Rupee LP Tokens), after add-liquidity",  balance4.toNumber());
+
+    const suppliedINRLiquidityAfterTransfer = await rapidContract.getSuppliedLiquidity(inrFiat32);
+    const suppliedEUROLiquidityAfterTransfer = await rapidContract.getSuppliedLiquidity(euroFiat32);
+      console.log("supplied INR Liquidity", suppliedINRLiquidityAfterTransfer.toNumber());
+      console.log("supplied EURO Liquidity", suppliedEUROLiquidityAfterTransfer.toNumber());  
+      
+    const currentINRLiquidityAfterTransfer = await euroToken.balanceOf(rapidContract.address);
+    const currentEUROLiquidityAfterTransfer = await inrToken.balanceOf(rapidContract.address);
+      console.log("current INR Liquidity", currentINRLiquidityAfterTransfer.toNumber());
+      console.log("current EURO Liquidity", currentEUROLiquidityAfterTransfer.toNumber()); 
+
     console.log("--------------------------");
-  });
+  }); 
 
-  it("Withdraw Liquidity", async function () {
+  it("Traveller Use Case", async function () {
     console.log("--------------------------");
 
-    const adminBalanceEUROFiat = await euroToken.balanceOf(adminUser.address);
-    console.log("balance of Admin User (Euro Fiat Tokens)",  adminBalanceEUROFiat.toNumber());
+    // after trnafering the fiat currency from Bank to Rapid account, Fiat tokens tranfered to Banks
+    // these are the seeded liquidity from Banks
 
-    const adminBalanceINRFiat = await inrToken.balanceOf(adminUser.address);
-    console.log("balance of Admin User (INR Fiat Tokens)",  adminBalanceINRFiat.toNumber());
+    const inrLiquidity = 10000;
+    const euroLiquidity = 100;
 
-    await euroToken.transfer(userOne.address,1000);
-    await inrToken.transfer(userTwo.address,10000);
+    console.log("--Add Liquidity Starts--");
 
-    const adminBalanceEUROFiat1 = await euroToken.balanceOf(adminUser.address);
-    console.log("balance of Admin User (Euro Fiat Tokens), after transfer",  adminBalanceEUROFiat1.toNumber());
+    await euroToken.transfer(euroBank.address,euroLiquidity);
+    await inrToken.transfer(inrBank.address,inrLiquidity);
 
-    const adminBalanceINRFiat1 = await inrToken.balanceOf(adminUser.address);
-    console.log("balance of Admin User (INR Fiat Tokens), after transfer",  adminBalanceINRFiat1.toNumber());
-  
-    const balanceOne = await euroToken.balanceOf(userOne.address);
-    console.log("balance of user-one(Euro Fiat Tokens), after buy",  balanceOne.toNumber());
+    // Add LP tokens to Rapid contract
+       await euroLPToken.transfer(rapidContract.address, 1000);
+       await inrLPToken.transfer(rapidContract.address, 100000);
 
-    const balanceTwo = await inrToken.balanceOf(userTwo.address);
-    console.log("balance of user-two(Rupee Fiat Tokens), after buy",  balanceTwo.toNumber());
+    await inrToken.connect(inrBank).transfer(rapidContract.address, inrLiquidity);
+    await euroToken.connect(euroBank).transfer(rapidContract.address, euroLiquidity);
 
-    // Add EURO liquidity
-    console.log("---- Add EURO liquidity ----");
-    await euroLPToken.transfer(rapidContract.address, 1000000);
-    await inrLPToken.transfer(rapidContract.address, 1000000);
-
-    await euroToken.connect(userOne).transfer(rapidContract.address, 1000);
-
-    const balanceOne1 = await euroToken.balanceOf(userOne.address);
-    console.log("balance of user-one(Euro Fiat Tokens), after lp token intiatiation",  balanceOne1.toNumber());
-
-    const rapidContractEUROFiat2 = await euroToken.balanceOf(rapidContract.address);
-    console.log("balance of Rapid Contract (Euro Fiat Tokens), after lp token intiatiation",  rapidContractEUROFiat2.toNumber());
-
-    await rapidContract.addLiquidity(1000,userOne.address,euroFiat32, euroLP32,1);
-    const balanceOneLP1 = await euroLPToken.balanceOf(userOne.address);
-    console.log("balance of user one(Euro LP Tokens), after lp intiatiation ",  balanceOneLP1.toNumber());
-
-    const rapidContractEUROLP1 = await euroLPToken.balanceOf(rapidContract.address);
-    console.log("balance of Rapid Contract (Euro LP Tokens), after lp intiatiation",  rapidContractEUROLP1.toNumber());
-
-    // withdraw EURO liquidity
-    console.log("---- Withdraw EURO liquidity ----");
-    await euroLPToken.connect(userOne).transfer(rapidContract.address, 1000);
-
-    const balanceLPOne1 = await euroLPToken.balanceOf(userOne.address);
-    console.log("balance of user-one(Euro LP Tokens), after lp token withdraw",  balanceLPOne1.toNumber());
-
-    const rapidContractEUROLP2 = await euroLPToken.balanceOf(rapidContract.address);
-    console.log("balance of Rapid Contract (Euro LP Tokens), after lp token withdraw",  rapidContractEUROLP2.toNumber());
-
-    await rapidContract.withdrawRequest(1000,userOne.address,euroLP32);
-
-    const timestamp = await rapidContract.getRequestTimeStamp(1);
-    console.log("withdrawRequest time-stamp : ",  timestamp.toNumber());
-
-    // to have few trnasctions
-    await euroLPToken.transfer(rapidContract.address, 1);
-    await inrLPToken.transfer(rapidContract.address, 1);
-    await euroLPToken.transfer(rapidContract.address, 1);
-    await inrLPToken.transfer(rapidContract.address, 1);
-    // to have few trnasctions
-
-    await rapidContract.withdrawLiquidity(1000,userOne.address,euroLP32,euroFiat32,1);
-    const balanceOneFiat1 = await euroToken.balanceOf(userOne.address);
-    console.log("balance of user one(Euro Fiat Tokens), after lp withdraw ",  balanceOneFiat1.toNumber());
-
-    const rapidContractFiat1 = await euroToken.balanceOf(rapidContract.address);
-    console.log("balance of Rapid Contract (Euro Fiat Tokens), after lp withdraw",  rapidContractFiat1.toNumber());
+    await rapidContract.addLiquidity(inrLiquidity,inrBank.address,inrFiat32, inrLP32,1);
+    await rapidContract.addLiquidity(euroLiquidity,euroBank.address,euroFiat32, euroLP32,1);     
+   
+    const currentINRLiquidityAfterTransfer = await inrToken.balanceOf(rapidContract.address);
+    const currentEUROLiquidityAfterTransfer = await euroToken.balanceOf(rapidContract.address);
+      console.log("current INR Liquidity", currentINRLiquidityAfterTransfer.toNumber());
+      console.log("current EURO Liquidity", currentEUROLiquidityAfterTransfer.toNumber()); 
     
+    const suppliedINRLiquidityAfterTransfer = await rapidContract.getSuppliedLiquidity(inrFiat32);
+    const suppliedEUROLiquidityAfterTransfer = await rapidContract.getSuppliedLiquidity(euroFiat32);
+      console.log("supplied INR Liquidity", suppliedINRLiquidityAfterTransfer.toNumber());
+      console.log("supplied EURO Liquidity", suppliedEUROLiquidityAfterTransfer.toNumber()); 
+
+    console.log("--Add Liquidity Ends--");
+    console.log("");
+    console.log("--Traveller Transaction Starts--");
+
+    // Iandian Traveller paying 10 Euros(802 INR) to Europian Merchant
+    // 1. Travller transfers fiat money to Rapid Org
+
+    // 2. transfer of 802 INR Fiat Token to Rapid Contract
+    await inrToken.transfer(rapidContract.address, 802);
+    const currentINRLiquidityAfterTransfer1 = await inrToken.balanceOf(rapidContract.address);
+    console.log("current INR Liquidity", currentINRLiquidityAfterTransfer1.toNumber());
+
+    // 3. Transfer of 10 Euros from Rapid Contract(Pool Address) to Merchant Address
+    await rapidContract.transferFiat(10,Merchant.address,euroFiat32); 
+    const currentEUROLiquidityAfterTransfer1 = await euroToken.balanceOf(rapidContract.address);
+    console.log("current EURO Liquidity", currentEUROLiquidityAfterTransfer1.toNumber()); 
+
+    const suppliedINRLiquidityAfterTransfer1 = await rapidContract.getSuppliedLiquidity(inrFiat32);
+    const suppliedEUROLiquidityAfterTransfer1 = await rapidContract.getSuppliedLiquidity(euroFiat32);
+      console.log("supplied INR Liquidity", suppliedINRLiquidityAfterTransfer1.toNumber());
+      console.log("supplied EURO Liquidity", suppliedEUROLiquidityAfterTransfer1.toNumber()); 
+
+    console.log("--Traveller Transaction Ends--");
     console.log("--------------------------");
-  });
+  }); 
+
+  it("Traveller Use Case with Fee calculations", async function () {
+    console.log("--------------------------");
+
+    // after trnafering the fiat currency from Bank to Rapid account, Fiat tokens tranfered to Banks
+    // these are the seeded liquidity from Banks
+
+    const inrLiquidity = 10000;
+    const euroLiquidity = 100;
 
 
- 
+    await euroToken.transfer(euroBank.address,euroLiquidity);
+    await inrToken.transfer(inrBank.address,inrLiquidity);
+
+    // Add LP tokens to Rapid contract
+       await euroLPToken.transfer(rapidContract.address, 1000);
+       await inrLPToken.transfer(rapidContract.address, 100000);
+
+    await inrToken.connect(inrBank).transfer(rapidContract.address, inrLiquidity);
+    await euroToken.connect(euroBank).transfer(rapidContract.address, euroLiquidity);
+
+    await rapidContract.addLiquidity(inrLiquidity,inrBank.address,inrFiat32, inrLP32,1);
+    await rapidContract.addLiquidity(euroLiquidity,euroBank.address,euroFiat32, euroLP32,1);     
+
+    console.log("--Traveller Transaction Starts--");
+
+    // Iandian Traveller paying 10 Euros(802 INR) to Europian Merchant
+    // 1. Travller transfers fiat money to Rapid Org
+
+    // 2. transfer of 802 INR Fiat Token to Rapid Contract
+    await inrToken.transfer(rapidContract.address, 802);
+    const currentINRLiquidityAfterTransfer1 = await inrToken.balanceOf(rapidContract.address);
+    console.log("current INR Liquidity", currentINRLiquidityAfterTransfer1.toNumber());
+
+    // to test the fee with low currentBalance-Euro
+    // await rapidContract.transferFiat(10,Merchant.address,euroFiat32);
+
+    // ** Fee Calculations**
+    const fee = await rapidContract.calculateFee(10,euroFiat32);
+    console.log("Fee to be paid: ", fee.toNumber());
+
+    // 3. Transfer of 10 Euros from Rapid Contract(Pool Address) to Merchant Address
+    await rapidContract.transferFiat(10,Merchant.address,euroFiat32); 
+    const currentEUROLiquidityAfterTransfer1 = await euroToken.balanceOf(rapidContract.address);
+    console.log("current EURO Liquidity", currentEUROLiquidityAfterTransfer1.toNumber()); 
+
+    const suppliedINRLiquidityAfterTransfer1 = await rapidContract.getSuppliedLiquidity(inrFiat32);
+    const suppliedEUROLiquidityAfterTransfer1 = await rapidContract.getSuppliedLiquidity(euroFiat32);
+      console.log("supplied INR Liquidity", suppliedINRLiquidityAfterTransfer1.toNumber());
+      console.log("supplied EURO Liquidity", suppliedEUROLiquidityAfterTransfer1.toNumber()); 
+
+    console.log("--Traveller Transaction Ends--");
+    console.log("--------------------------");
+  }); 
 
 });

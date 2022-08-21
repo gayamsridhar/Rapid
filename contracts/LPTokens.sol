@@ -8,7 +8,7 @@ contract LPTokens is ERC20{
   address public lpTokenAdmin ;
   constructor(string memory name, string memory symbol) ERC20(name,symbol) {
     lpTokenAdmin = msg.sender;
-    _mint(msg.sender,10000000000);
+    _mint(msg.sender,10000000000000);
   }
 
   function lpMint(address to, uint amount) external onlyAdmin  {

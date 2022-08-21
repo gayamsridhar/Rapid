@@ -8,7 +8,7 @@ contract TokenisedFiat is ERC20{
   address public faitTokenAdmin ;
   constructor(string memory name, string memory symbol) ERC20(name,symbol) {
     faitTokenAdmin = msg.sender;
-    _mint(msg.sender,10000000000);
+    _mint(msg.sender,10000000000000);
   }
 
   function fMint(address to, uint amount) external onlyAdmin {
