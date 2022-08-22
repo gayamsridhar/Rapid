@@ -180,7 +180,7 @@ describe("Rapid Protocol", function () {
     console.log("current INR Liquidity", currentINRLiquidityAfterTransfer1.toNumber());
 
     // 3. Transfer of 10 Euros from Rapid Contract(Pool Address) to Merchant Address
-    await rapidContract.transferFiat(10,Merchant.address,euroFiat32); 
+    await rapidContract.transferFiat(10,Merchant.address,euroFiat32,20); 
     const currentEUROLiquidityAfterTransfer1 = await euroToken.balanceOf(rapidContract.address);
     console.log("current EURO Liquidity", currentEUROLiquidityAfterTransfer1.toNumber()); 
 
@@ -213,6 +213,9 @@ describe("Rapid Protocol", function () {
     await inrToken.connect(inrBank).transfer(rapidContract.address, inrLiquidity);
     await euroToken.connect(euroBank).transfer(rapidContract.address, euroLiquidity);
 
+    // added extra fiat to increase the current pool balance by 100
+    await euroToken.transfer(rapidContract.address, 100);
+
     await rapidContract.addLiquidity(inrLiquidity,inrBank.address,inrFiat32, inrLP32,1);
     await rapidContract.addLiquidity(euroLiquidity,euroBank.address,euroFiat32, euroLP32,1);     
 
@@ -226,15 +229,13 @@ describe("Rapid Protocol", function () {
     const currentINRLiquidityAfterTransfer1 = await inrToken.balanceOf(rapidContract.address);
     console.log("current INR Liquidity", currentINRLiquidityAfterTransfer1.toNumber());
 
-    // to test the fee with low currentBalance-Euro
-    // await rapidContract.transferFiat(10,Merchant.address,euroFiat32);
 
     // ** Fee Calculations**
     const fee = await rapidContract.calculateFee(10,euroFiat32);
     console.log("Fee to be paid: ", fee.toNumber());
 
     // 3. Transfer of 10 Euros from Rapid Contract(Pool Address) to Merchant Address
-    await rapidContract.transferFiat(10,Merchant.address,euroFiat32); 
+    await rapidContract.transferFiat(10,Merchant.address,euroFiat32,20); 
     const currentEUROLiquidityAfterTransfer1 = await euroToken.balanceOf(rapidContract.address);
     console.log("current EURO Liquidity", currentEUROLiquidityAfterTransfer1.toNumber()); 
 

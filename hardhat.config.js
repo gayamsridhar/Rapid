@@ -63,6 +63,10 @@ module.exports = {
       saveDeployments: true,
       tags: ["staging"]
     },
+    matic: {
+      url: "https://rpc-mumbai.maticvigil.com",
+      accounts: [pvtkey]
+    },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,

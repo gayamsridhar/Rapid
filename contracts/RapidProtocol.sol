@@ -30,11 +30,13 @@ contract RapidProtocol is ERC20 {
     bytes32[] public fiatTokenList;
     bytes32[] public lpTokenList;
 
-    uint equilibriumFee = 2;
+    uint equilibriumFee = 20; // 20 basis points which means 0.2%
     uint liquidityFactor = 2;
     uint256 private constant BASE_DIVISOR = 1000;
 
     mapping(bytes32 => uint) public suppliedLiquidity;
+    mapping(bytes32 => uint) public lpFeePool;
+    uint lpFeeConst = 1000000;
 
     event AddLiquidity(uint amount, address to, bytes32 fromSymbol, bytes32 toSymbol);
     event WithdrawLiquidity(uint amount, address to, bytes32 fromSymbol, bytes32 toSymbol);
@@ -83,8 +85,9 @@ contract RapidProtocol is ERC20 {
         emit AddLiquidity(amount,to,fromSymbol,toSymbol);      
     }  
 
-    function transferFiat(uint amount, address to, bytes32 toSymbol) public fiatTokenExist(toSymbol) onlyAdmin {
+    function transferFiat(uint amount, address to, bytes32 toSymbol, uint fee) public fiatTokenExist(toSymbol) onlyAdmin {
      ERC20(fiatTokens[toSymbol].tokenAddress).transfer(to, amount);
+     lpFeePool[toSymbol] += fee*lpFeeConst;
 
       emit TransferFiat(amount, to, toSymbol);
     } 
