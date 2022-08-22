@@ -1,0 +1,62 @@
+## Inspiration
+The dual problem of High Cost and Slow Speed of cross border transactions has been troubling the public, merchants, FinTechs and even Regulators alike since many years. Many tradFi and deFi projects trying to solve it but the problem still remains at large. After all, why should the cross border transactions cost significantly higher than the domestic transactions? A small premium is acceptable to take care of forex but the costs are significantly higher than acceptable levels!
+
+Imagine if an international tourist can enjoy his trip without worrying about the hassles of dealing with foreign currency.
+
+Imagine if people can remit their hard earned FIAT to their loved ones in their home country in a manner that is as simple, fast and cost efficient as a domestic transaction.  
+
+These thoughts have inspired us to come up with a hybrid solution that takes advantage of complementary strengths of DeFi and TradFi ecosystems. While DeFi ensures instantaneous settlement, decentralization and cost efficiency; TradFi complements it by bringing its huge user base, utility and compliance compatibility.
+
+## What it does
+Simply put, we built a decentralized cross border payments rail for Fiat currencies.
+
+RapidX protocol can be used by any ==frontends==( be it Web3 or Web 2 or TradFi or DeFi) to carryout out ==Real Time== cross border payments at ==100X lower fees== than existing TradFi payment rails.
+
+Deposit Source currency tokens to the protocol to receive the Destination currency tokens(after exchange rate conversion and deducting the fees). Exchange rate is inter-bank exchange rate and fees is dynamic depending on the destination currency liquidity pool position.
+
+RapidX protocol's smart contract can be used by Liquidity Providers to tokenize their FIAT currencies and provide liquidity to the corresponding Pool. For example, tokenized version of INR (tINR) can be supplied as liquidity to tINR Liquidity pool. Anyone with idle cash (public, Corporates, VCs, Fintech etc.) can supply liquidity in their domestic currency token pool. (RapidX Company takes custody of the FIAT)
+
+In return for supplying single side liquidity, cross currency transfer transaction fee is proportionately distributed to the LPs. LPs receive base fee and the remaining fee is issued as cashbacks for transactions that help rebalance the imbalanced pool.
+
+The Use cases for the frontend include FinTechs, Web2 niche Payment Apps(Travellers, Education, Trade Finance etc.), Web2 Super Apps, eCommerce portals, Authorized Remittance Service Providers, Micro Payments and any other Application that require a backend for cross border payments.
+
+All such frontends can seamlessly interact with rapidX protocol both for payments rail and for fx liquidity.
+
+For the purpose of this hackathon, we would demonstrate how a Web2 Payments App that is integrated with RapidX protocol can be used by a international traveler to pay to the merchants in a foreign currency as seamlessly as a domestic transaction.
+
+Unique Features of RapidX:
+
+(a)Hybrid Model - Best of DeFi and TradFi
+
+(b)Single Sided Liquidity Pools - Liquidity provided only in local currency - Crowd Sourcing
+
+(c)On Chain Risk Management
+# Automated Self-rebalancing Pools
+# Dynamic Fees: transaction fees is linked to destination pool liquidity position. The higher is the imbalance, higher the fees. Base fee goes to liquidity providers. Remaining goes to cashback pool.
+# Cashbacks for transactions that reduce the pool imbalance
+# Time locked Liquidity Pools
+# Liquidity Pool size caps & reserves to manage the Liquidity pool returns. (Planned but not implemented to hackathon)
+
+## How we built it
+The smart contracts of the RapidX protocol is written in solidity and deployed to Polygon Mumbai Test Net.  TokenizedFiat Smart Contract is used tokenize the FIAT currencies. RapidProtocol Smart Contract is used to AddLiquidity, WithdrawLiquidity, transfer function, Calculate fees and to maintain Pool balance
+euroToken : https://mumbai.polygonscan.com/address/0x56568C0ccBAEEd9F1CeAd6Ccdd3E1d44831D7118
+rupeeToken : https://mumbai.polygonscan.com/address/0xD714FB95dfaAf04B3a26da2a7835be7Fc20a4Af7
+euro LP Token : https://mumbai.polygonscan.com/address/0x677B8E2fA049Be9cc709a2B9d0d091076E85481f
+rupee LP Token : https://mumbai.polygonscan.com/address/0x3Ba63a2eBaDA3eEbca5CFC5A291Ff66a2daACA68
+Rapid Contract : https://mumbai.polygonscan.com/address/0x747989F2B532d06Bb5d7f40f4486871B63477E43
+
+#How it works:
+
+Providing Liquidity
+1. LP signs into the RapidX Dapp using his web3 credentials.(==Sequence Wallet==)
+2. LP purchases the tokenized FIAT (of local currency) using TradFi payment rails integrated to the RapidX Dapp.(domestic banking transaction, transaction cost is zero in most countries)
+3. LP web3 wallet would be credited with tFIAT tokens
+4. LP can supply liquidity to the Rapid Smart Contract's tFIAT liquidity pool
+5. LP receives LP token (1:1) ratio and earns fees proportionately.
+6. LP can withdraw the liquidity by burning the LP tokens.
+
+Cross Border transaction (using a Front end) - Travellers Payment App Use Case (INR to Euro)
+1. Traveler Scans the QR code the Merchant in the Destination Country/e-Commerce using the Travellers Payment App.
+  2. App displays the bill amount(in destination currency) along with exchange rate, fees and amount to be paid in domestic currency
+                3. traveler clicks on Pay and the INR is taken into custody, tINR is minted and deposited to Smart Contract INR Pool, Smart Contract Euro Pool is debited and Merchant Wallet is credited.
+                4. transaction Status displayed.
