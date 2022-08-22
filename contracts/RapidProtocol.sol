@@ -46,10 +46,14 @@ contract RapidProtocol is ERC20 {
         admin = msg.sender;
     }
 
+    // Add fiat token contract address to registry
+
     function addFiatToken(bytes32 symbol, address tokenAddress) public onlyAdmin{
         fiatTokens[symbol] = Token(symbol, tokenAddress);
         fiatTokenList.push(symbol);
-    } // token Registry
+    } 
+
+    // get token contract address from registry
 
     function getFiatTokens() external view returns(Token[] memory) {
       Token[] memory _tokens = new Token[](fiatTokenList.length);
@@ -62,10 +66,14 @@ contract RapidProtocol is ERC20 {
       return _tokens;
     }
 
+    // Add LP token contract address to registry
+
     function addLPToken(bytes32 symbol, address tokenAddress) public onlyAdmin{
         lpTokens[symbol] = Token(symbol, tokenAddress);
         lpTokenList.push(symbol);
-    } // token Registry
+    } 
+
+    // get LP token contract address from registry
 
     function getLPTokens() external view returns(Token[] memory) {
       Token[] memory _tokens = new Token[](lpTokenList.length);
@@ -78,12 +86,16 @@ contract RapidProtocol is ERC20 {
       return _tokens;
     }
 
+    // supply liquidity to Rapid Pool Contract
+
     function addLiquidity(uint amount, address to, bytes32 fromSymbol, bytes32 toSymbol, uint ratio) public fiatTokenExist(fromSymbol) lpTokenExist(toSymbol) onlyAdmin {
         ERC20(lpTokens[toSymbol].tokenAddress).transfer(to, amount*ratio);
         suppliedLiquidity[fromSymbol] += amount;  
 
         emit AddLiquidity(amount,to,fromSymbol,toSymbol);      
     }  
+
+    // trnasfer fiat tokens from Rapid Pool Contract to recipient
 
     function transferFiat(uint amount, address to, bytes32 toSymbol, uint fee) public fiatTokenExist(toSymbol) onlyAdmin {
      ERC20(fiatTokens[toSymbol].tokenAddress).transfer(to, amount);
@@ -92,12 +104,16 @@ contract RapidProtocol is ERC20 {
       emit TransferFiat(amount, to, toSymbol);
     } 
 
+    // withdraw liquidity from recipient - trnasfer fiat tokens from Rapid Pool Contract to recipient
+
     function withdrawLiquidity(uint amount, address to, bytes32 fromSymbol, bytes32 toSymbol, uint count) public lpTokenExist(fromSymbol) fiatTokenExist(toSymbol) checkRequestTimeStamp(count) onlyAdmin {
      ERC20(fiatTokens[toSymbol].tokenAddress).transfer(to, amount);
      suppliedLiquidity[toSymbol] -= amount;
 
      emit WithdrawLiquidity(amount,to,fromSymbol,toSymbol); 
     }  
+
+    // Transfer fee calculations
 
     function calculateFee(uint amount, bytes32 toSymbol) public fiatTokenExist(toSymbol) onlyAdmin view returns(uint totalFee) {
      uint currentLiquidity = ERC20(fiatTokens[toSymbol].tokenAddress).balanceOf(address(this)) - amount;
@@ -110,6 +126,8 @@ contract RapidProtocol is ERC20 {
         return TF;
      }
     } 
+
+    // storing the withdraw requests
 
     function withdrawRequest(uint amount, address to, bytes32 toSymbol) public lpTokenExist(toSymbol) onlyAdmin {
         requestCounter++;

@@ -57,6 +57,8 @@ describe("Rapid Protocol", function () {
   it("buy fiat tokens", async function () {
     console.log("--------------------------");
 
+    console.log("euroFiat32:", euroFiat32);
+
     const adminBalanceEUROFiat = await euroToken.balanceOf(adminUser.address);
     console.log("balance of Admin User (Euro Fiat Tokens)",  adminBalanceEUROFiat.toNumber());
 

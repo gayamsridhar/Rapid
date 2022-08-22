@@ -19,6 +19,8 @@ async function main() {
   const euroToken = await euro.deploy("Euro Fiat Token","EUTF");
   await euroToken.deployed();
 
+  
+
   console.log("euroToken deployed to:", euroToken.address);
 
   const inr = await ethers.getContractFactory("TokenisedFiat");
@@ -46,7 +48,7 @@ async function main() {
   console.log("Rapid Contract deployed to:", rapidContract.address);
 
       // add LP tokens to pool registry 
-
+      
       await rapidContract.addFiatToken(euroFiat32, euroToken.address);
       await rapidContract.addFiatToken(inrFiat32, inrToken.address);
   
