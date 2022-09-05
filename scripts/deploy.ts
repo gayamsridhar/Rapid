@@ -10,13 +10,18 @@ const utils = ethers.utils;
 
 async function main() {
 
- const euroFiat32 =  utils.formatBytes32String("EUFT");
- const inrFiat32 = utils.formatBytes32String("INRFT");
+ const euroFiat32 =  utils.formatBytes32String("EURO");
+ const inrFiat32 = utils.formatBytes32String("INR");
  const euroLP32 = utils.formatBytes32String("EULP");
  const inrLP32 = utils.formatBytes32String("INRLP");
 
+ console.log("euroFiat32: ", euroFiat32);
+ console.log("inrFiat32: ", inrFiat32);
+ console.log("euroLP32: ", euroLP32);
+ console.log("inrLP32: ", inrLP32);
+
   const euro = await ethers.getContractFactory("TokenisedFiat");
-  const euroToken = await euro.deploy("Euro Fiat Token","EUTF");
+  const euroToken = await euro.deploy("Euro Fiat Token","EURO");
   await euroToken.deployed();
 
   
@@ -24,7 +29,7 @@ async function main() {
   console.log("euroToken deployed to:", euroToken.address);
 
   const inr = await ethers.getContractFactory("TokenisedFiat");
-  const inrToken = await inr.deploy("Rupee Fiat Token","INRTF");
+  const inrToken = await inr.deploy("Rupee Fiat Token","INR");
   await inrToken.deployed();
 
   console.log("rupeeToken deployed to:", inrToken.address);

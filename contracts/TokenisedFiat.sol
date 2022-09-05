@@ -5,22 +5,19 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract TokenisedFiat is ERC20{
 
-  address public faitTokenAdmin ;
-  constructor(string memory name, string memory symbol) ERC20(name,symbol) {
+  address public faitTokenAdmin;
+    
+  constructor(string memory name, string memory symbol,  uint adminSupply) ERC20(name,symbol) {
     faitTokenAdmin = msg.sender;
-    //_mint(msg.sender,10000000000000);
-    _mint(msg.sender,100000000);
+    _mint(msg.sender,adminSupply);
   }
 
-    function decimals() public view virtual override returns (uint8) {
-        return 0;
-    }
 
   function fMint(address to, uint amount) external onlyAdmin {
     _mint(to, amount);
   }
 
-  function fBurn(address to, uint amount) external onlyAdmin {
+  function fBurn(address to, uint amount) external {
        _burn(to, amount);
   }
 
