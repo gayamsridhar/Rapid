@@ -12,3 +12,4 @@ commands.txt
 hardhat.config_org.ts
 test/Rapid_backup.txt
 .gitignore
+contracts/LiquidityPool.txt
