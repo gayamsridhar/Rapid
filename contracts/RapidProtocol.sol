@@ -134,14 +134,14 @@ contract RapidProtocol is ERC20 {
     }  
 
     function withdrawLiquidityFee(address to, bytes32 fiatSymbol) internal fiatTokenExist(fiatSymbol) {
-    uint feeAccruced = getLiquidityFeeAccruced(to,fiatSymbol);
+     uint feeAccruced = getLiquidityFeeAccruced(to,fiatSymbol);
      require(feeAccruced >= 0 , "reward amount is too low to withdraw at this momemnt");
       ERC20(fiatTokens[fiatSymbol].tokenAddress).transfer(to, feeAccruced);
-     totalLPfee -= feeAccruced
+     totalLPfee -= feeAccruced;
     }
 
     function getLiquidityFeeAccruced(address to, bytes32 fiatSymbol) public fiatTokenExist(fiatSymbol) view returns(uint share) {
-       uint x = (liquidityProvider[to][fiatSymbol]*totalLPfee)/(suppliedLiquidity[fiatSymbol];
+       uint x = (liquidityProvider[to][fiatSymbol]*totalLPfee)/(suppliedLiquidity[fiatSymbol]);
        return x;
     } 
 
