@@ -64,7 +64,7 @@ describe("Rapid Protocol", function () {
 
   }); 
 
-  it("*** Add Liquidity ***", async function () {
+  it.skip("*** Add Liquidity ***", async function () {
     console.log("----------- Get Premint Admin Balance -----------");
 
     const adminUserInrTokenBalance = await inrToken.balanceOf(adminUser.address);
@@ -133,7 +133,7 @@ describe("Rapid Protocol", function () {
     console.log("----------- Add Liquidity Ends -----------");
   }); 
 
-  it("*** PayPal UseCase ***", async function () {
+  it.skip("*** PayPal UseCase ***", async function () {
      // Add LP tokens to Rapid contract
     await euroLPToken.transfer(rapidContract.address, euroLPSupply);
     await inrLPToken.transfer(rapidContract.address, inrLPSupply);
@@ -218,6 +218,90 @@ describe("Rapid Protocol", function () {
 
   }); 
 
+  it("*** PayPal UseCase With IP Fee ***", async function () {
+    // Add LP tokens to Rapid contract
+   await euroLPToken.transfer(rapidContract.address, euroLPSupply);
+   await inrLPToken.transfer(rapidContract.address, inrLPSupply);
+
+   // after transferring the fiat currency from Liquidity Provider to Rapid Bank-Account, Fiat tokens transferred to Liquidity Providers
+   
+   const inrLiquidity = 10000000000000;  // 10K INR (decimals -9)
+   const euroLiquidity = 126000000000; //  126 Euros (decimals -9)
+  
+   await euroToken.transfer(LiquidityProvider1.address,euroLiquidity);
+   await inrToken.transfer(LiquidityProvider2.address,inrLiquidity);
+
+   // Liqudity Providers click on Add Liquidty button : LP's trassfers their fiat tokens to RapidX Pool
+
+
+   await inrToken.connect(LiquidityProvider2).transfer(rapidContract.address, inrLiquidity);
+   await euroToken.connect(LiquidityProvider1).transfer(rapidContract.address, euroLiquidity);
+
+   // In-Return, LP's recive the LP Tokens
+
+   await rapidContract.addLiquidity(inrLiquidity,LiquidityProvider2.address,inrFiat32, inrLP32,1);
+   await rapidContract.addLiquidity(euroLiquidity,LiquidityProvider1.address,euroFiat32, euroLP32,1); 
+
+   // to get the fee(in basis points and in amount) in destination currency
+
+   // "Lets say Indian user need to transfer 10.5 Euros"
+   // "after conversion into INR : 833.05"
+
+
+  // 1. Manish will send currency-pair to receive exchange rate(either SC/some other external link)
+  // e.g. 10.5 EU = 833.05 INR
+
+   const amount2transferInEU = 10500000000;
+   const amount2transferInINR = 833050000000; // = 10.5 EURO
+
+ // 2) Manish will send the destination amount and destination currency(symbol) 
+ //    to smart contract to get the fee(in basis points and in amount) in destination currency
+   const totalFeesInBasisPoints = await rapidContract.calculateFee(amount2transferInEU,euroFiat32);
+   const x = totalFeesInBasisPoints/10000;
+   
+   const totalFeesInAmount = await rapidContract.calculateFeeInAmount(amount2transferInINR,amount2transferInEU,euroFiat32);
+
+ // 3) Manish will display the total amount to transfer to buyer      
+ // 4) buyer will do bank-transfer of total amount(834.97) rupees to Rapid Organsation
+ // 5) Admin will transfer the same amount to Rapid INR pool
+ // INR pool balance before transfer 
+ const InrPoolBalance = await inrToken.balanceOf(rapidContract.address);
+ console.log("--------- Before Transfer---------");
+ console.log("INR Pool Balance before transfer: ", InrPoolBalance.toNumber());
+
+ const inrSuppliedLiqudity =await rapidContract.getSuppliedLiquidity(inrFiat32);
+ console.log("INR Supplied Liqudity before transfer: ", inrSuppliedLiqudity.toNumber());
+ console.log("--------- Before Transfer---------");
+
+ const transferINRAmount = 830966015000;
+ const forINRLowIPfee = 417983007500;
+ const forINRHighIPfee= 835966015000;
+ console.log("");
+ console.log("--------- After Transfer---------");
+
+ await rapidContract.transferFiat(transferINRAmount,Seller.address,inrFiat32);
+ const inrIPfee = await rapidContract.ipFeePool(inrFiat32);
+ console.log('INR trnasfered to seller', transferINRAmount);
+ const sellerINRBalance = await inrToken.balanceOf(Seller.address);
+ console.log('After trnasfer, Seller INR Balalnce: ', sellerINRBalance.toNumber());
+ console.log('INR IP fee after trnafering Rapid-INR-Pool to seller', inrIPfee.toNumber());
+
+  //await inrToken.transfer(rapidContract.address, totalFeesInAmount);
+  const InrPoolBalance1 = await inrToken.balanceOf(rapidContract.address);
+    console.log("INR Pool Balance after transfer: ", InrPoolBalance1.toNumber());
+    const inrSuppliedLiqudity1 =await rapidContract.getSuppliedLiquidity(inrFiat32);
+    console.log("INR Supplied Liqudity after transfer: ", inrSuppliedLiqudity1.toNumber());
+ // 5) Rapid contract will send the eurofiat to Seller
+   await rapidContract.transferFiat(amount2transferInEU,Seller.address,euroFiat32); 
+   console.log("--------- After Transfer---------");
+
+  // const cashback = await rapidContract.cashbackIPFees(forINRHighIPfee,inrFiat32);
+  const cashback = await rapidContract.cashbackIPFees(forINRLowIPfee,inrFiat32);
+
+  console.log("INR Pool cashback: ", cashback.toNumber());
+
+
+ }); 
 
 
 });

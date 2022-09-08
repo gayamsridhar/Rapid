@@ -39,8 +39,6 @@ contract RapidProtocol is ERC20 {
     mapping(bytes32 => uint) public lpFeePool;
     mapping(bytes32 => uint) public ipFeePool;
 
-    uint public totalLPfee;
-    uint public totalIPfee;
 
     mapping(address => mapping(bytes32 => uint)) public liquidityProvider;
     mapping(address => mapping(bytes32 => uint)) public lpFee2Withdraw;
@@ -112,10 +110,8 @@ contract RapidProtocol is ERC20 {
      uint ipFee = totalFee-equilibriumFee;
 
      lpFeePool[destinationFiatSymbol] +=(equilibriumFee*amount)/10000;
-     totalLPfee +=(equilibriumFee*amount)/10000;
 
      ipFeePool[destinationFiatSymbol] += (ipFee*amount)/10000;
-     totalIPfee += (ipFee*amount)/10000;
 
      ERC20(fiatTokens[destinationFiatSymbol].tokenAddress).transfer(to, amount);
 
@@ -137,11 +133,10 @@ contract RapidProtocol is ERC20 {
      uint feeAccruced = getLiquidityFeeAccruced(to,fiatSymbol);
      require(feeAccruced >= 0 , "reward amount is too low to withdraw at this momemnt");
       ERC20(fiatTokens[fiatSymbol].tokenAddress).transfer(to, feeAccruced);
-     totalLPfee -= feeAccruced;
     }
 
     function getLiquidityFeeAccruced(address to, bytes32 fiatSymbol) public fiatTokenExist(fiatSymbol) view returns(uint share) {
-       uint x = (liquidityProvider[to][fiatSymbol]*totalLPfee)/(suppliedLiquidity[fiatSymbol]);
+       uint x = (liquidityProvider[to][fiatSymbol]*lpFeePool[fiatSymbol])/(suppliedLiquidity[fiatSymbol]);
        return x;
     } 
 
@@ -149,22 +144,42 @@ contract RapidProtocol is ERC20 {
 
     function calculateFee(uint destinationAmount, bytes32 destinationSymbol) public onlyAdmin view returns(uint totalFee) {
         uint currentLiquidity;
-        if(fiatTokens[destinationSymbol].tokenAddress != address(0)){
-             currentLiquidity = ERC20(fiatTokens[destinationSymbol].tokenAddress).balanceOf(address(this)) - destinationAmount;
-        }else{
-                require(currentLiquidity>0, "token symbol does not exist");
-        }
+        require(fiatTokens[destinationSymbol].tokenAddress != address(0), "token does not exist");
+        currentLiquidity = ERC20(fiatTokens[destinationSymbol].tokenAddress).balanceOf(address(this)) - destinationAmount;
         
         if (currentLiquidity >= suppliedLiquidity[destinationSymbol])
-            return equilibriumFee;
+            return (equilibriumFee);
         else {
-
             uint x = ((suppliedLiquidity[destinationSymbol] - currentLiquidity)*BASE_DIVISOR)/suppliedLiquidity[destinationSymbol];
-        // uint y = 1000+((x*1000)/BASE_DIVISOR);
             uint feesInBasisPoints = equilibriumFee*((1000+((x*1000)/BASE_DIVISOR))**2)/BASE_DIVISOR;
-            return feesInBasisPoints;
+            return (feesInBasisPoints);
         }
     } 
+
+    function calculateFeeAndCashback(uint sourceAmount, bytes32 sourceSymbol, uint destinationAmount, bytes32 destinationSymbol) public onlyAdmin view returns(uint totalFee, uint cashback) {
+        uint cashBack = cashbackIPFees(sourceAmount,sourceSymbol);
+        uint transactionFee = calculateFee(destinationAmount,destinationSymbol);
+        return (transactionFee,cashBack);
+    } 
+
+    function cashbackIPFees(uint sourceAmount, bytes32 sourceSymbol) public onlyAdmin view returns(uint cashback) {
+        uint currentLiquidity;
+        uint sLcLdiff;
+        uint cashbackFee;
+        require(fiatTokens[sourceSymbol].tokenAddress != address(0), "token does not exist");
+        currentLiquidity = ERC20(fiatTokens[sourceSymbol].tokenAddress).balanceOf(address(this));
+		
+        if (suppliedLiquidity[sourceSymbol] > currentLiquidity)
+        {
+		  sLcLdiff = suppliedLiquidity[sourceSymbol]-currentLiquidity;        
+            if (sourceAmount > sLcLdiff)
+                return ipFeePool[sourceSymbol];
+            else {
+                cashbackFee = (sourceAmount*ipFeePool[sourceSymbol])/sLcLdiff;
+            }
+        }
+        return cashbackFee;
+    }
 
     function calculateFeeInAmount(uint sourceAmount, uint destinationAmount, bytes32 destinationSymbol) public onlyAdmin view returns(uint totalFeeAmount) {
         uint totalFee = calculateFee(destinationAmount,destinationSymbol);
