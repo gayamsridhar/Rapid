@@ -71,4 +71,8 @@ npm install '@openzeppelin/contracts'
 npm install '@openzeppelin/contracts-upgradeable'
 npm install '@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol'
 
+git add .
+git status
+git commit -m 'New Version'
+
 
