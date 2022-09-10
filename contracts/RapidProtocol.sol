@@ -34,6 +34,8 @@ contract RapidProtocol is ERC20 {
     uint public liquidityFactor = 2;
     uint256 private BASE_DIVISOR = 1000000;
     uint256 private FEE_DIVISOR = 10000;
+    uint256 private BASE_FACTOR = 10**18;
+
 
     mapping(bytes32 => uint) public suppliedLiquidity;
     mapping(bytes32 => uint) public lpFeePool;
@@ -105,17 +107,21 @@ contract RapidProtocol is ERC20 {
 
     // trnasfer fiat tokens from Rapid Pool Contract to recipient
 
-    function transferFiat(uint amount, address to, bytes32 destinationFiatSymbol) public fiatTokenExist(destinationFiatSymbol) onlyAdmin {
-     uint totalFee = calculateFee(amount,destinationFiatSymbol);
-     uint ipFee = totalFee-equilibriumFee;
+    function transferFiat(address to, uint destinationAmount, bytes32 destinationFiatSymbol, uint sourceAmount, bytes32 sourceFiatSymbol) public fiatTokenExist(destinationFiatSymbol) onlyAdmin {
+        uint cashBack = cashbackIPFees(sourceAmount,sourceFiatSymbol);
+        uint transactionFee = calculateFee(destinationAmount,destinationFiatSymbol);
+        uint ipFee = transactionFee-equilibriumFee;
 
-     lpFeePool[destinationFiatSymbol] +=(equilibriumFee*amount)/10000;
+     ipFeePool[sourceFiatSymbol] -= cashBack;
 
-     ipFeePool[destinationFiatSymbol] += (ipFee*amount)/10000;
+     lpFeePool[destinationFiatSymbol] +=(equilibriumFee*destinationAmount)/10000;
 
-     ERC20(fiatTokens[destinationFiatSymbol].tokenAddress).transfer(to, amount);
+     ipFeePool[destinationFiatSymbol] += (ipFee*destinationAmount)/10000;
+     
 
-      emit TransferFiat(amount, to, destinationFiatSymbol);
+     ERC20(fiatTokens[destinationFiatSymbol].tokenAddress).transfer(to, destinationAmount);
+
+      emit TransferFiat(destinationAmount, to, destinationFiatSymbol);
     } 
 
     // withdraw liquidity from recipient - trnasfer fiat tokens from Rapid Pool Contract to recipient
@@ -130,14 +136,17 @@ contract RapidProtocol is ERC20 {
     }  
 
     function withdrawLiquidityFee(address to, bytes32 fiatSymbol) internal fiatTokenExist(fiatSymbol) {
-     uint feeAccruced = getLiquidityFeeAccruced(to,fiatSymbol);
+     uint feeAccruced;
+     uint share;
+     (feeAccruced, share)= getLiquidityFeeAccruced(to,fiatSymbol);
      require(feeAccruced >= 0 , "reward amount is too low to withdraw at this momemnt");
-      ERC20(fiatTokens[fiatSymbol].tokenAddress).transfer(to, feeAccruced);
+     ERC20(fiatTokens[fiatSymbol].tokenAddress).transfer(to, feeAccruced);
     }
 
-    function getLiquidityFeeAccruced(address to, bytes32 fiatSymbol) public fiatTokenExist(fiatSymbol) view returns(uint share) {
-       uint x = (liquidityProvider[to][fiatSymbol]*lpFeePool[fiatSymbol])/(suppliedLiquidity[fiatSymbol]);
-       return x;
+    function getLiquidityFeeAccruced(address to, bytes32 fiatSymbol) public fiatTokenExist(fiatSymbol) view returns(uint feeEarned, uint shareEarned) {
+       uint feeAccrued = (liquidityProvider[to][fiatSymbol]*lpFeePool[fiatSymbol])/(suppliedLiquidity[fiatSymbol]);
+       uint share = (liquidityProvider[to][fiatSymbol]*BASE_FACTOR)/(suppliedLiquidity[fiatSymbol]);
+       return (feeAccrued,share);
     } 
 
     // Transfer fee calculations

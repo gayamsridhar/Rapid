@@ -10,44 +10,66 @@ const utils = ethers.utils;
 
 async function main() {
 
- const euroFiat32 =  utils.formatBytes32String("EURO");
- const inrFiat32 = utils.formatBytes32String("INR");
- const euroLP32 = utils.formatBytes32String("EULP");
- const inrLP32 = utils.formatBytes32String("INRLP");
+ const euroFiat32 =  utils.formatBytes32String("tEURO");
+ const inrFiat32 = utils.formatBytes32String("tINR");
+ const usdFiat32 = utils.formatBytes32String("tUSD");
+ const euroLP32 = utils.formatBytes32String("tEUROLP");
+ const inrLP32 = utils.formatBytes32String("tINRLP");
+ const usdLP32 = utils.formatBytes32String("tUSDLP");
 
- console.log("euroFiat32: ", euroFiat32);
- console.log("inrFiat32: ", inrFiat32);
- console.log("euroLP32: ", euroLP32);
- console.log("inrLP32: ", inrLP32);
+
+const inrFiatSupply = "1000000000000000000000000";
+const euroFiatSupply = "1000000000000000000000000";
+const usdFiatSupply = "1000000000000000000000000";
+const inrLPSupply = "1000000000000000000000000";
+const euroLPSupply = "1000000000000000000000000";
+const usdLPSupply = "1000000000000000000000000";
+
+ console.log("euroFiat32(bytes32): ", euroFiat32);
+ console.log("inrFiat32(bytes32): ", inrFiat32);
+ console.log("usdFiat32(bytes32): ", usdFiat32);
+ console.log("euroLP32(bytes32): ", euroLP32);
+ console.log("inrLP32(bytes32): ", inrLP32);
+ console.log("usdLP32(bytes32): ", usdLP32);
 
   const euro = await ethers.getContractFactory("TokenisedFiat");
-  const euroToken = await euro.deploy("Euro Fiat Token","EURO");
-  await euroToken.deployed();
+  const euroToken = await euro.deploy("EURO Token","tEURO",euroFiatSupply);
+  await euroToken.deployed();  
 
-  
-
-  console.log("euroToken deployed to:", euroToken.address);
+  console.log("euro Fiat Token deployed to:", euroToken.address);
 
   const inr = await ethers.getContractFactory("TokenisedFiat");
-  const inrToken = await inr.deploy("Rupee Fiat Token","INR");
+  const inrToken = await inr.deploy("INR Token","tINR",inrFiatSupply);
   await inrToken.deployed();
 
-  console.log("rupeeToken deployed to:", inrToken.address);
+  console.log("rupee Fiat Token deployed to:", inrToken.address);
+
+  const usd = await ethers.getContractFactory("TokenisedFiat");
+  const usdToken = await usd.deploy("USD Token","tUSD",usdFiatSupply);
+  await usdToken.deployed();
+
+  console.log("usd Fiat Token deployed to:", usdToken.address);
 
   const euroLP = await ethers.getContractFactory("LPTokens");
-  const euroLPToken = await euroLP.deploy("Euro Liquidity Pool Token","EULP");
+  const euroLPToken = await euroLP.deploy("Euro Liquidity Pool Token","tEUROLP",euroLPSupply);
   await euroLPToken.deployed();
 
   console.log("euro LP Token deployed to:", euroLPToken.address);
 
-  const inrLP = await ethers.getContractFactory("TokenisedFiat");
-  const inrLPToken = await inrLP.deploy("Rupee Liquidity Pool Token","INRLP");
+  const inrLP = await ethers.getContractFactory("LPTokens");
+  const inrLPToken = await inrLP.deploy("Rupee Liquidity Pool Token","tINRLP",inrLPSupply);
   await inrLPToken.deployed();
 
   console.log("rupee LP Token deployed to:", inrLPToken.address);
 
+  const usdLP = await ethers.getContractFactory("LPTokens");
+  const usdLPToken = await usdLP.deploy("US Dollar Liquidity Pool Token","tUSDLP",usdLPSupply);
+  await usdLPToken.deployed();
+
+  console.log("usd LP Token deployed to:", usdLPToken.address);
+
   const rapid = await ethers.getContractFactory("RapidProtocol");
-  const rapidContract = await rapid.deploy("Rapid Governance Token","RGT");
+  const rapidContract = await rapid.deploy("RapidX Governance Token","RGT");
   await rapidContract.deployed();
 
   console.log("Rapid Contract deployed to:", rapidContract.address);
@@ -56,44 +78,27 @@ async function main() {
       
       await rapidContract.addFiatToken(euroFiat32, euroToken.address);
       await rapidContract.addFiatToken(inrFiat32, inrToken.address);
+      await rapidContract.addFiatToken(usdFiat32, usdToken.address);
   
       await rapidContract.addLPToken(euroLP32, euroLPToken.address);
       await rapidContract.addLPToken(inrLP32, inrLPToken.address);
+      await rapidContract.addLPToken(usdLP32, usdLPToken.address);
+      
 
-      // send some fiat tokens to Rapid Contract 
+      // send LP tokens to Rapid Contract 
 
-      const euroLiquidity = 1000;
-      const inrLiquidity = 10000000;
-  
-      await euroToken.transfer(rapidContract.address,euroLiquidity);
-      await inrToken.transfer(rapidContract.address,inrLiquidity);
-
-      const inrFiatBal = await inrToken.balanceOf(rapidContract.address);
-      const euroFiatBal = await euroToken.balanceOf(rapidContract.address);
-
-      console.log("inr-fiat balance of Rapid Contract:", inrFiatBal);
-      console.log("euro-fiat balance of Rapid Contract:", euroFiatBal);
-
-      // send some LP tokens to Rapid Contract 
-
-      await euroLPToken.transfer(rapidContract.address,euroLiquidity);
-      await inrLPToken.transfer(rapidContract.address,inrLiquidity);
+      await euroLPToken.transfer(rapidContract.address,euroLPSupply);
+      await inrLPToken.transfer(rapidContract.address,inrLPSupply);
+      await usdLPToken.transfer(rapidContract.address,usdLPSupply);
 
       const inrLPBal = await inrLPToken.balanceOf(rapidContract.address);
       const euroLPBal = await euroLPToken.balanceOf(rapidContract.address);
+      const usdLPBal = await usdLPToken.balanceOf(rapidContract.address);
 
-      console.log("inr-fiat balance of Rapid Contract:", inrLPBal);
-      console.log("euro-fiat balance of Rapid Contract:", euroLPBal);
+      console.log("inr-LP balance of Rapid Contract:", inrLPBal);
+      console.log("euro-LP balance of Rapid Contract:", euroLPBal);
+      console.log("usd-LP balance of Rapid Contract:", usdLPBal);
 
-      // send some INR Fiat and LP tokens to Traveler
-      const Traveller = '0x80585785B7BbABF20756f7C86714017e012CE5D9';
-      await inrToken.transfer(Traveller,100000);
-      await inrLPToken.transfer(Traveller,100000);
-
-      // send some EURO Fiat and LP tokens to Merchant
-      const Merchant = '0xcD3715F79d3E8ebc7301B73D2D709F62D751A7bc'
-      await euroToken.transfer(Merchant,1000);
-      await euroLPToken.transfer(Merchant,1000);
 }
 
 main().catch((error) => {
