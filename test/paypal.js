@@ -96,8 +96,8 @@ describe("Rapid Protocol", function () {
 
     console.log("---Add Liquidty button : LP's transfers their fiat tokens to RapidX Pool--")
 
-    await inrToken.connect(LiquidityProvider2).transfer(rapidContract.address, inrLiquidity);
-    await euroToken.connect(LiquidityProvider1).transfer(rapidContract.address, euroLiquidity);
+    await inrToken.connect(LiquidityProvider2).approve(rapidContract.address, inrLiquidity);
+    await euroToken.connect(LiquidityProvider1).approve(rapidContract.address, euroLiquidity);
 
     const InrPoolBalance = await inrToken.balanceOf(rapidContract.address);
     const EuroPoolBalance = await euroToken.balanceOf(rapidContract.address);
@@ -113,7 +113,8 @@ describe("Rapid Protocol", function () {
 
     console.log("---In-Return, LP's receive the LP Tokens--")
 
-    await rapidContract.addLiquidity(inrLiquidity,LiquidityProvider2.address,inrFiat32, inrLP32,1);
+    //await rapidContract.addLiquidity(inrLiquidity,LiquidityProvider2.address,inrFiat32, inrLP32,1);
+    await rapidContract.addLiquidity(1000000000000,LiquidityProvider2.address,inrFiat32, inrLP32,1);
     await rapidContract.addLiquidity(euroLiquidity,LiquidityProvider1.address,euroFiat32, euroLP32,1); 
     
     const LiquidityProvider2LPTokenBalance = await inrLPToken.balanceOf(LiquidityProvider2.address);
@@ -137,6 +138,58 @@ describe("Rapid Protocol", function () {
     console.log("----------- Add Liquidity Ends -----------");
   }); 
 
+  it("*** withdraw Liquidity ***", async function () {
+
+
+    // transfer all LP tokens to Rapid contract
+    await euroLPToken.transfer(rapidContract.address, euroLPSupply);
+    await inrLPToken.transfer(rapidContract.address, inrLPSupply);
+
+    // after transferring the fiat currency from Liquidity Provider to Rapid Bank-Account, Fiat tokens transferred to Liquidity Providers Wallet
+    
+    const inrLiquidity = 10000000000000;  // 10K INR (decimals -9)
+    const euroLiquidity = 126000000000; //  126 Euros (decimals -9)
+   
+    await euroToken.transfer(LiquidityProvider1.address,euroLiquidity);
+    await inrToken.transfer(LiquidityProvider2.address,inrLiquidity);   
+      
+    // Liqudity Providers click on Add Liquidty button : LP's trassfers their fiat tokens to RapidX Pool
+
+    await inrToken.connect(LiquidityProvider2).approve(rapidContract.address, inrLiquidity);
+    await euroToken.connect(LiquidityProvider1).approve(rapidContract.address, euroLiquidity);
+  
+    // In-Return, LP's recive the LP Tokens
+
+    await rapidContract.addLiquidity(inrLiquidity,LiquidityProvider2.address,inrFiat32, inrLP32,1);
+    //await rapidContract.addLiquidity(1000000000000,LiquidityProvider2.address,inrFiat32, inrLP32,1);
+    await rapidContract.addLiquidity(euroLiquidity,LiquidityProvider1.address,euroFiat32, euroLP32,1); 
+
+    const LiquidityProvider2LPTokenBalance0 = await inrLPToken.balanceOf(LiquidityProvider2.address);
+    const LiquidityProvider1LPTokenBalance0= await euroLPToken.balanceOf(LiquidityProvider1.address);
+      console.log("Liquidity Provider-2 INR LP Token Balance before withdraw: ", LiquidityProvider2LPTokenBalance0.toNumber());
+      console.log("Liquidity Provider-1 EURO LP Token Balance before withdraw: ", LiquidityProvider1LPTokenBalance0.toNumber());
+
+ //   await inrLPToken.connect(LiquidityProvider2).approve(rapidContract.address, inrLiquidity);
+    await inrLPToken.connect(LiquidityProvider2).approve(rapidContract.address, inrLiquidity);
+    await euroLPToken.connect(LiquidityProvider1).approve(rapidContract.address, euroLiquidity);
+
+    await rapidContract.withdrawLiquidity(9999999999999,LiquidityProvider2.address,inrFiat32, inrLP32);
+    await rapidContract.withdrawLiquidity(euroLiquidity,LiquidityProvider1.address,euroFiat32, euroLP32);
+    
+    const LiquidityProvider2LPTokenBalance = await inrLPToken.balanceOf(LiquidityProvider2.address);
+    const LiquidityProvider1LPTokenBalance = await euroLPToken.balanceOf(LiquidityProvider1.address);
+      console.log("Liquidity Provider-2 INR LP Token Balance after withdraw: ", LiquidityProvider2LPTokenBalance.toNumber());
+      console.log("Liquidity Provider-1 EURO LP Token Balance after withdraw: ", LiquidityProvider1LPTokenBalance.toNumber());
+
+      const LiquidityProvider2inrTokenBalance = await inrToken.balanceOf(LiquidityProvider2.address);
+      const LiquidityProvider1euroTokenBalance = await euroToken.balanceOf(LiquidityProvider1.address);
+        console.log("Liquidity Provider-2 INR Token Balance after withdraw: ", LiquidityProvider2inrTokenBalance.toNumber());
+        console.log("Liquidity Provider-1 EURO Token Balance after withdraw: ", LiquidityProvider1euroTokenBalance.toNumber());
+    
+   
+    console.log("----------- Withdraw Liquidity Ends -----------");
+  }); 
+
   it("*** PayPal UseCase ***", async function () {
      // Add LP tokens to Rapid contract
     await euroLPToken.transfer(rapidContract.address, euroLPSupply);
@@ -153,8 +206,8 @@ describe("Rapid Protocol", function () {
     // Liqudity Providers click on Add Liquidty button : LP's trassfers their fiat tokens to RapidX Pool
 
 
-    await inrToken.connect(LiquidityProvider2).transfer(rapidContract.address, inrLiquidity);
-    await euroToken.connect(LiquidityProvider1).transfer(rapidContract.address, euroLiquidity);
+    await inrToken.connect(LiquidityProvider2).approve(rapidContract.address, inrLiquidity);
+    await euroToken.connect(LiquidityProvider1).approve(rapidContract.address, euroLiquidity);
 
     // In-Return, LP's recive the LP Tokens
 
@@ -218,7 +271,7 @@ describe("Rapid Protocol", function () {
     await euroToken.transfer(LiquidityProvider3.address,toGetEuroShateAmount);
     
     // 3. LiquidityProvider3 transfer the euro fiat tokens to Rapid euro pool
-    await euroToken.connect(LiquidityProvider3).transfer(rapidContract.address,toGetEuroShateAmount);
+    await euroToken.connect(LiquidityProvider3).approve(rapidContract.address,toGetEuroShateAmount);
     // 4. Rapid contract transfers the Euro LP tokesn to LiquidityProvider3
     await rapidContract.addLiquidity(toGetEuroShateAmount,LiquidityProvider3.address,euroFiat32, euroLP32,1);
     // get Liquidity Fee Share
@@ -244,8 +297,8 @@ describe("Rapid Protocol", function () {
    // Liqudity Providers click on Add Liquidty button : LP's trassfers their fiat tokens to RapidX Pool
 
 
-   await inrToken.connect(LiquidityProvider2).transfer(rapidContract.address, inrLiquidity);
-   await euroToken.connect(LiquidityProvider1).transfer(rapidContract.address, euroLiquidity);
+   await inrToken.connect(LiquidityProvider2).approve(rapidContract.address, inrLiquidity);
+   await euroToken.connect(LiquidityProvider1).approve(rapidContract.address, euroLiquidity);
 
    // In-Return, LP's recive the LP Tokens
 
@@ -327,8 +380,6 @@ describe("Rapid Protocol", function () {
 
   const inrIPfee1 = await rapidContract.ipFeePool(inrFiat32);
   console.log("INR IP fee after trnasfer: ", inrIPfee1.toNumber());
-
-
 
  }); 
 

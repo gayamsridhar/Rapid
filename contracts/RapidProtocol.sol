@@ -96,13 +96,18 @@ contract RapidProtocol is ERC20 {
     }
 
     // supply liquidity to Rapid Pool Contract
+    // 1. user will send his fiat tokens to contract (tokensnised FIat : Transfer function ) - AMount
+    // 2. addLiquidity by admin to transfer LP tokens from Contract to USER
 
-    function addLiquidity(uint amount, address to, bytes32 fiatSymbol, bytes32 lpSymbol, uint ratio) public fiatTokenExist(fiatSymbol) lpTokenExist(lpSymbol) onlyAdmin {
+    function addLiquidity(uint amount, address to, bytes32 fiatSymbol, bytes32 lpSymbol, uint ratio) public fiatTokenExist(fiatSymbol) lpTokenExist(lpSymbol){
+        uint allowanceAmount = ERC20(fiatTokens[fiatSymbol].tokenAddress).allowance(to, address(this));
+        require(allowanceAmount>=amount, "amount is greater than allowance amount");
+        ERC20(fiatTokens[fiatSymbol].tokenAddress).transferFrom(to,address(this),amount*ratio);
         ERC20(lpTokens[lpSymbol].tokenAddress).transfer(to, amount*ratio);
         suppliedLiquidity[fiatSymbol] += amount;  
         liquidityProvider[to][fiatSymbol]+= amount;
 
-        emit AddLiquidity(amount,to,fiatSymbol,lpSymbol);      
+        emit AddLiquidity(amount,to,fiatSymbol,lpSymbol);   
     }  
 
     // trnasfer fiat tokens from Rapid Pool Contract to recipient
@@ -126,13 +131,16 @@ contract RapidProtocol is ERC20 {
 
     // withdraw liquidity from recipient - trnasfer fiat tokens from Rapid Pool Contract to recipient
 
-    function withdrawLiquidity(uint amount, address to, bytes32 fiatSymbol) public fiatTokenExist(fiatSymbol) {
-     require(liquidityProvider[to][fiatSymbol] >= amount , "Withdrawal amount requested is more than supplied liquidity");
-     ERC20(fiatTokens[fiatSymbol].tokenAddress).transfer(to, amount);
-     withdrawLiquidityFee(to,fiatSymbol);
-     suppliedLiquidity[fiatSymbol] -= amount;
-     liquidityProvider[to][fiatSymbol]-= amount;
-     emit WithdrawLiquidity(amount,to,fiatSymbol); 
+    function withdrawLiquidity(uint amount, address to, bytes32 fiatSymbol, bytes32 lpSymbol) public fiatTokenExist(fiatSymbol) {
+        uint allowanceLpAmount = ERC20(lpTokens[lpSymbol].tokenAddress).allowance(to, address(this));
+        require(allowanceLpAmount>=amount, "withdrawl amount is greater than allowance amount");
+        ERC20(lpTokens[lpSymbol].tokenAddress).transferFrom(to,address(this),amount);
+        require(liquidityProvider[to][fiatSymbol] >= amount , "Withdrawal amount requested is more than supplied liquidity");
+        ERC20(fiatTokens[fiatSymbol].tokenAddress).transfer(to, amount);
+        withdrawLiquidityFee(to,fiatSymbol);
+        suppliedLiquidity[fiatSymbol] -= amount;
+        liquidityProvider[to][fiatSymbol]-= amount;
+        emit WithdrawLiquidity(amount,to,fiatSymbol); 
     }  
 
     function withdrawLiquidityFee(address to, bytes32 fiatSymbol) internal fiatTokenExist(fiatSymbol) {
@@ -144,6 +152,7 @@ contract RapidProtocol is ERC20 {
     }
 
     function getLiquidityFeeAccruced(address to, bytes32 fiatSymbol) public fiatTokenExist(fiatSymbol) view returns(uint feeEarned, uint shareEarned) {
+       require(suppliedLiquidity[fiatSymbol]>0 , "supplied liquidity is zero");
        uint feeAccrued = (liquidityProvider[to][fiatSymbol]*lpFeePool[fiatSymbol])/(suppliedLiquidity[fiatSymbol]);
        uint share = (liquidityProvider[to][fiatSymbol]*BASE_FACTOR)/(suppliedLiquidity[fiatSymbol]);
        return (feeAccrued,share);
