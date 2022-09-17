@@ -277,7 +277,7 @@ describe("Rapid Protocol", function () {
     // get Liquidity Fee Share
     const share = await rapidContract.getLiquidityFeeAccruced(LiquidityProvider3.address,euroFiat32);
     console.log("LiquidityProvider3 - feeEarned: ", share.feeEarned.toNumber());
-    console.log("LiquidityProvider3 - shareEarned: ", share.shareEarned);
+    //console.log("LiquidityProvider3 - shareEarned: ", share.shareEarned.toNumber());
 
   }); 
 
@@ -383,5 +383,45 @@ describe("Rapid Protocol", function () {
 
  }); 
 
+ it("*** get Liquidity FeeAccruced without supplied liquidity ***", async function () {
+    expect(rapidContract.getLiquidityFeeAccruced(LiquidityProvider1.address, inrFiat32))
+          .to.be.revertedWith('supplied liquidity is zero');
+    }); 
 
-});
+  
+  it("*** get Liquidity FeeAccruced ***", async function () {
+
+          // transfer all LP tokens to Rapid contract
+      await euroLPToken.transfer(rapidContract.address, euroLPSupply);
+      await inrLPToken.transfer(rapidContract.address, inrLPSupply);
+
+      // after transferring the fiat currency from Liquidity Provider to Rapid Bank-Account, Fiat tokens transferred to Liquidity Providers Wallet
+      
+      const inrLiquidity = 10000000000000;  // 10K INR (decimals -9)
+      const euroLiquidity = 126000000000; //  126 Euros (decimals -9)
+    
+      await euroToken.transfer(LiquidityProvider1.address,euroLiquidity);
+      await inrToken.transfer(LiquidityProvider2.address,inrLiquidity);   
+        
+      // Liqudity Providers click on Add Liquidty button : LP's trassfers their fiat tokens to RapidX Pool
+
+      await inrToken.connect(LiquidityProvider2).approve(rapidContract.address, inrLiquidity);
+      await euroToken.connect(LiquidityProvider1).approve(rapidContract.address, euroLiquidity);
+    
+      // In-Return, LP's recive the LP Tokens
+
+      await rapidContract.addLiquidity(inrLiquidity,LiquidityProvider2.address,inrFiat32, inrLP32,1);
+      //await rapidContract.addLiquidity(1000000000000,LiquidityProvider2.address,inrFiat32, inrLP32,1);
+      await rapidContract.addLiquidity(euroLiquidity,LiquidityProvider1.address,euroFiat32, euroLP32,1); 
+    
+    const liquidityFeeAccruced = await rapidContract.getLiquidityFeeAccruced(LiquidityProvider1.address, inrFiat32);
+    console.log("liquidity Fee Accruced: ", liquidityFeeAccruced.feeAccrued); 
+
+    }); 
+ 
+  });
+
+
+
+
+
