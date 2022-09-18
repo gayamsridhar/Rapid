@@ -30,12 +30,11 @@ contract RapidProtocol is ERC20 {
     bytes32[] public fiatTokenList;
     bytes32[] public lpTokenList;
 
-    uint public equilibriumFee = 20; // 20 basis points(1/100 percent) which means 0.2%(20/100)
-    uint public liquidityFactor = 2;
+    mapping(bytes32 => uint) internal equilibriumFee; // 20 basis points(1/100 percent) which means 0.2%(20/100)
+    mapping(bytes32 => uint) public liquidityFactor;
     uint256 private BASE_DIVISOR = 1000000;
     uint256 private FEE_DIVISOR = 10000;
     uint256 private BASE_FACTOR = 10**18;
-
 
     mapping(bytes32 => uint) public suppliedLiquidity;
     mapping(bytes32 => uint) public lpFeePool;
@@ -115,11 +114,11 @@ contract RapidProtocol is ERC20 {
     function transferFiat(address to, uint destinationAmount, bytes32 destinationFiatSymbol, uint sourceAmount, bytes32 sourceFiatSymbol) public fiatTokenExist(destinationFiatSymbol) onlyAdmin {
         uint cashBack = cashbackIPFees(sourceAmount,sourceFiatSymbol);
         uint transactionFee = calculateFee(destinationAmount,destinationFiatSymbol);
-        uint ipFee = transactionFee-equilibriumFee;
+        uint ipFee = transactionFee-equilibriumFee[destinationFiatSymbol];
 
      ipFeePool[sourceFiatSymbol] -= cashBack;
 
-     lpFeePool[destinationFiatSymbol] +=(equilibriumFee*destinationAmount)/10000;
+     lpFeePool[destinationFiatSymbol] +=(equilibriumFee[destinationFiatSymbol]*destinationAmount)/10000;
 
      ipFeePool[destinationFiatSymbol] += (ipFee*destinationAmount)/10000;
      
@@ -161,17 +160,33 @@ contract RapidProtocol is ERC20 {
     // Transfer fee calculations
 
     function calculateFee(uint destinationAmount, bytes32 destinationSymbol) public onlyAdmin view returns(uint totalFee) {
-        uint currentLiquidity;
         require(fiatTokens[destinationSymbol].tokenAddress != address(0), "token does not exist");
+        
+        uint currentLiquidity;
+        uint equiFee ;
+
+            if (equilibriumFee[destinationSymbol] < 20)
+                equiFee = 20;
+            else            
+		        equiFee = equilibriumFee[destinationSymbol];
+
+
         currentLiquidity = ERC20(fiatTokens[destinationSymbol].tokenAddress).balanceOf(address(this)) - destinationAmount;
         
         if (currentLiquidity >= suppliedLiquidity[destinationSymbol])
-            return (equilibriumFee);
+            return (equiFee);
         else {
+            uint r;
+            if (liquidityFactor[destinationSymbol] < 2)
+                r =2;
+            else            
+                r = liquidityFactor[destinationSymbol];
+
             uint x = ((suppliedLiquidity[destinationSymbol] - currentLiquidity)*BASE_DIVISOR)/suppliedLiquidity[destinationSymbol];
-            uint feesInBasisPoints = equilibriumFee*((1000+((x*1000)/BASE_DIVISOR))**2)/BASE_DIVISOR;
+            uint feesInBasisPoints = equiFee*((1000+((x*1000)/BASE_DIVISOR))**r)/(BASE_DIVISOR*(1000**(r-2)));
             return (feesInBasisPoints);
         }
+        
     } 
 
     function calculateFeeAndCashback(uint sourceAmount, bytes32 sourceSymbol, uint destinationAmount, bytes32 destinationSymbol) public onlyAdmin view returns(uint totalFee, uint cashback) {
@@ -231,18 +246,23 @@ contract RapidProtocol is ERC20 {
        return liquidityProvider[user][symbol];
     }  
 
-
-
     function setBaseDivisor(uint bd) public onlyAdmin {
        BASE_DIVISOR = bd;
     }
 
-    function setEquilibriumFee(uint fee) public onlyAdmin {
-        equilibriumFee = fee;
+    function setLiquidityFactor(bytes32 fiatSymbol, uint factor) public onlyAdmin {
+       liquidityFactor[fiatSymbol] = factor;
     }
 
-    function setLiquidityFactor(uint lf) public onlyAdmin {
-        liquidityFactor = lf;
+    function setEquilibriumFee(bytes32 fiatSymbol, uint fee) public onlyAdmin {
+        equilibriumFee[fiatSymbol] = fee;
+    }
+
+    function getEquilibriumFee(bytes32 fiatSymbol) public view returns (uint fee) {
+        if(equilibriumFee[fiatSymbol] < 20)
+          return 20;
+        else
+          return equilibriumFee[fiatSymbol];
     }
 
     
