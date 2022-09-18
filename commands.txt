@@ -76,6 +76,6 @@ git status
 git commit -m 'New Version'
 git push -u -f origin master 
 
-git rest
+git reset
 
 
