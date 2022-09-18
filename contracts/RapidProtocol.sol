@@ -112,13 +112,20 @@ contract RapidProtocol is ERC20 {
     // trnasfer fiat tokens from Rapid Pool Contract to recipient
 
     function transferFiat(address to, uint destinationAmount, bytes32 destinationFiatSymbol, uint sourceAmount, bytes32 sourceFiatSymbol) public fiatTokenExist(destinationFiatSymbol) onlyAdmin {
+            uint equiFee ;
+
+            if (equilibriumFee[destinationFiatSymbol] < 20)
+                equiFee = 20;
+            else            
+		        equiFee = equilibriumFee[destinationFiatSymbol];
+                
         uint cashBack = cashbackIPFees(sourceAmount,sourceFiatSymbol);
         uint transactionFee = calculateFee(destinationAmount,destinationFiatSymbol);
-        uint ipFee = transactionFee-equilibriumFee[destinationFiatSymbol];
+        uint ipFee = transactionFee-equiFee;
 
      ipFeePool[sourceFiatSymbol] -= cashBack;
 
-     lpFeePool[destinationFiatSymbol] +=(equilibriumFee[destinationFiatSymbol]*destinationAmount)/10000;
+     lpFeePool[destinationFiatSymbol] +=(equiFee*destinationAmount)/10000;
 
      ipFeePool[destinationFiatSymbol] += (ipFee*destinationAmount)/10000;
      
