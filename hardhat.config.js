@@ -70,7 +70,7 @@ module.exports = {
 
     maticmain: {
       url: "https://polygon-rpc.com/",
-      accounts: [pvtkey]
+      accounts: [pvtkey],
     },
   },
   gasReporter: {

@@ -78,7 +78,8 @@ const usdLPSupply = "1000000000000000000000000";
   console.log("Rapid Contract deployed to:", rapidContract.address);
 
       // add LP tokens to pool registry 
-      
+
+  
       await rapidContract.addFiatToken(euroFiat32, euroToken.address);
       await rapidContract.addFiatToken(inrFiat32, inrToken.address);
       await rapidContract.addFiatToken(usdFiat32, usdToken.address);
