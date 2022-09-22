@@ -29,13 +29,16 @@ const totalEuroFiatSupply = 12584170;
 const totalInrLPSupply = 1000000000;
 const totalEuroLPSupply = 12584170;
 
+const INR2USD = "0xDA0F8Df6F5dB15b346f4B8D1156722027E194E60";
+const EUR2USD = "0x73366Fe0AA0Ded304479862808e02506FE556a98";
+
 
 describe("Rapid Protocol", function () {
   beforeEach(async function () {
     [adminUser,  Seller, Buyer, LiquidityProvider1, LiquidityProvider2, LiquidityProvider3] = await ethers.getSigners();
 
     rapid = await ethers.getContractFactory("RapidProtocol");
-    rapidContract = await rapid.deploy("RapidX Governance Token","RAPIDX");
+    rapidContract = await rapid.deploy("RapidX Governance Token","RAPIDX", INR2USD, EUR2USD);
     await rapidContract.deployed();
 
     const repidContractAddr = rapidContract.address;
@@ -230,7 +233,10 @@ describe("Rapid Protocol", function () {
   //    await rapidContract.calculateFee(destination-amount,destination-currency(symbol));
   //    await rapidContract.calculateFeeInAmount(source-amount,destination-amount,destination-currency(symbol));
   console.log("---- Get Fee In Amount & Basis Points ---");
-    const totalFeesInBasisPoints = await rapidContract.calculateFee(amount2transferInEU,euroFiat32);
+
+  const totalFeesInBasisPoints = await rapidContract.calculateFee(amount2transferInEU,euroFiat32);
+
+     console.log("totalFeesInBasisPoints:", totalFeesInBasisPoints.toNumber);
     console.log("Total Fee In Basis Points: From RapidX contract: ", totalFeesInBasisPoints.toNumber());
     const x = totalFeesInBasisPoints/10000;
     const amount2transferInINRwithFee = (1+x)*amount2transferInINR;

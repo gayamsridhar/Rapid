@@ -31,7 +31,8 @@ npx hardhat test
 npx hardhat run scripts/deploy.js
 npx hardhat run scripts/upgraded-deploy.js
 
-npx hardhat run --network matic scripts/deploy.ts
+npx hardhat run --network matic scripts/deploy.js
+npx hardhat run --network matic scripts/pricefeeder.js
 
 npx hardhat console --network rinkeby
 

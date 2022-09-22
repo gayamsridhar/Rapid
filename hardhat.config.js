@@ -24,7 +24,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
-const pvtkey = '0x7dd020d26d829e60186b33746c3b851b4536e891c4c64f9ce617dd96d44107d4'
+const pvtkey = process.env.PRIVATE_KEY;
 module.exports = {
   //solidity: "0.8.0",
   solidity: {
@@ -65,6 +65,11 @@ module.exports = {
     },
     matic: {
       url: "https://rpc-mumbai.maticvigil.com",
+      accounts: [pvtkey]
+    },
+
+    maticmain: {
+      url: "https://polygon-rpc.com/",
       accounts: [pvtkey]
     },
   },

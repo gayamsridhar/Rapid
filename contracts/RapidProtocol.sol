@@ -3,24 +3,15 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./TokenisedFiat.sol";
+import "./PriceFeeder.sol";
 
-
-contract RapidProtocol is ERC20 {
+contract RapidProtocol is ERC20, PriceFeeder{
     
     struct Token {
         bytes32 symbol;
         address tokenAddress;
     }
 
-    struct WithdrawRequest {
-        uint amount;
-        address to;
-        bytes32 tokenSymbol;
-        uint timestamp;
-    }
-
-    mapping(uint => WithdrawRequest) public withdrawRequests;
     uint requestCounter;
 
     ERC20 public token;
@@ -44,13 +35,11 @@ contract RapidProtocol is ERC20 {
     mapping(address => mapping(bytes32 => uint)) public liquidityProvider;
     mapping(address => mapping(bytes32 => uint)) public lpFee2Withdraw;
 
-
-
     event AddLiquidity(uint amount, address to, bytes32 fiatSymbol, bytes32 lpSymbol);
     event WithdrawLiquidity(uint amount, address to, bytes32 fiatSymbol);
     event TransferFiat(uint amount, address to, bytes32 destinationFiatSymbol);
 
-    constructor(string memory name, string memory symbol) ERC20(name,symbol) {
+    constructor(string memory name, string memory symbol, address INR2USDfeedAddress, address EURO2USDfeedAddress) ERC20(name,symbol) PriceFeeder(INR2USDfeedAddress,EURO2USDfeedAddress) {
         admin = msg.sender;
     }
 
@@ -235,16 +224,6 @@ contract RapidProtocol is ERC20 {
         return ipFeePool[symbol];
     }
 
-    // storing the withdraw requests
-
-    function withdrawRequest(uint amount, address to, bytes32 toSymbol) public lpTokenExist(toSymbol) onlyAdmin {
-        requestCounter++;
-        withdrawRequests[requestCounter].timestamp = block.timestamp;
-        withdrawRequests[requestCounter].amount = amount;
-        withdrawRequests[requestCounter].to = to;
-        withdrawRequests[requestCounter].tokenSymbol = toSymbol;      
-    } 
-
     function getSuppliedLiquidity(bytes32 toSymbol) public view returns (uint count) {
        return suppliedLiquidity[toSymbol];
     }   
@@ -271,8 +250,7 @@ contract RapidProtocol is ERC20 {
         else
           return equilibriumFee[fiatSymbol];
     }
-
-    
+  
     modifier onlyAdmin() {
         require(msg.sender == admin, "only admin");
         _;
@@ -292,12 +270,6 @@ contract RapidProtocol is ERC20 {
         _;
     }
 
-    modifier checkRequestTimeStamp(uint count) {
-        require(
-            withdrawRequests[count].timestamp <= block.timestamp-1, "Wait for reuqest to process"
-        );
-        _;
-    }
 }
 
      

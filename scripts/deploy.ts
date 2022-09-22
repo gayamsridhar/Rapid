@@ -32,6 +32,9 @@ const usdLPSupply = "1000000000000000000000000";
  console.log("inrLP32(bytes32): ", inrLP32);
  console.log("usdLP32(bytes32): ", usdLP32);
 
+ const INR2USD = "0xDA0F8Df6F5dB15b346f4B8D1156722027E194E60";
+ const EUR2USD = "0x73366Fe0AA0Ded304479862808e02506FE556a98";
+
   const euro = await ethers.getContractFactory("TokenisedFiat");
   const euroToken = await euro.deploy("EURO Token","tEURO",euroFiatSupply);
   await euroToken.deployed();  
@@ -69,7 +72,7 @@ const usdLPSupply = "1000000000000000000000000";
   console.log("usd LP Token deployed to:", usdLPToken.address);
 
   const rapid = await ethers.getContractFactory("RapidProtocol");
-  const rapidContract = await rapid.deploy("RapidX Governance Token","RGT");
+  const rapidContract = await rapid.deploy("RapidX Governance Token","RGT", INR2USD, EUR2USD);
   await rapidContract.deployed();
 
   console.log("Rapid Contract deployed to:", rapidContract.address);
