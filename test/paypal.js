@@ -38,7 +38,7 @@ describe("Rapid Protocol", function () {
     [adminUser,  Seller, Buyer, LiquidityProvider1, LiquidityProvider2, LiquidityProvider3] = await ethers.getSigners();
 
     rapid = await ethers.getContractFactory("RapidProtocol");
-    rapidContract = await rapid.deploy("RapidX Governance Token","RAPIDX", INR2USD, EUR2USD);
+    rapidContract = await rapid.deploy("RapidX Governance Token","RAPIDX");
     await rapidContract.deployed();
 
     const repidContractAddr = rapidContract.address;

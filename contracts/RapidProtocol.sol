@@ -3,9 +3,9 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./PriceFeeder.sol";
+import "./Notifications.sol";
 
-contract RapidProtocol is ERC20, PriceFeeder{
+contract RapidProtocol is ERC20, Notifications{
     
     struct Token {
         bytes32 symbol;
@@ -39,7 +39,7 @@ contract RapidProtocol is ERC20, PriceFeeder{
     event WithdrawLiquidity(uint amount, address to, bytes32 fiatSymbol);
     event TransferFiat(uint amount, address to, bytes32 destinationFiatSymbol);
 
-    constructor(string memory name, string memory symbol, address INR2USDfeedAddress, address EURO2USDfeedAddress) ERC20(name,symbol) PriceFeeder(INR2USDfeedAddress,EURO2USDfeedAddress) {
+    constructor(string memory name, string memory symbol) ERC20(name,symbol) {
         admin = msg.sender;
     }
 
@@ -117,7 +117,8 @@ contract RapidProtocol is ERC20, PriceFeeder{
      lpFeePool[destinationFiatSymbol] +=(equiFee*destinationAmount)/10000;
 
      ipFeePool[destinationFiatSymbol] += (ipFee*destinationAmount)/10000;
-     
+
+     // notificationToSeller(to,destinationAmount,destinationFiatSymbol);     
 
      ERC20(fiatTokens[destinationFiatSymbol].tokenAddress).transfer(to, destinationAmount);
 

@@ -72,7 +72,7 @@ const usdLPSupply = "1000000000000000000000000";
   console.log("usd LP Token deployed to:", usdLPToken.address);
 
   const rapid = await ethers.getContractFactory("RapidProtocol");
-  const rapidContract = await rapid.deploy("RapidX Governance Token","RGT");
+  const rapidContract = await rapid.deploy("RapidX Governance Token","RGT", INR2USD, EUR2USD);
   await rapidContract.deployed();
 
   console.log("Rapid Contract deployed to:", rapidContract.address);
