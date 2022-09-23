@@ -118,7 +118,7 @@ contract RapidProtocol is ERC20, Notifications{
 
      ipFeePool[destinationFiatSymbol] += (ipFee*destinationAmount)/10000;
 
-     // notificationToSeller(to,destinationAmount,destinationFiatSymbol);     
+     notificationToSeller(to,destinationAmount,destinationFiatSymbol);     
 
      ERC20(fiatTokens[destinationFiatSymbol].tokenAddress).transfer(to, destinationAmount);
 
